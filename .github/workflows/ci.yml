@@ -1,0 +1,89 @@
+name: CI (Python uv)
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: "Enable debug logging for troubleshooting"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  # Minimal permissions for CI workflow
+  contents: read
+
+jobs:
+  # Run tests and linting for Python projects using uv package manager
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        # Pin to specific commit SHA for security
+        # actions/checkout@v4.1.7 (August 2024)
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Set up Python runtime
+        # Pin to specific commit SHA for security
+        # actions/setup-python@v5.1.1 (August 2024)
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        with:
+          python-version: "3.12"
+
+      - name: Install uv package manager
+        # Use official installer script for latest version
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Sync project dependencies
+        run: |
+          # Add uv to PATH for current session
+          export PATH="$HOME/.local/bin:$PATH"
+
+          # Install dependencies based on project structure
+          if [ -f pyproject.toml ]; then
+            echo "📦 Installing from pyproject.toml..."
+            uv sync --all-extras --dev
+          elif [ -f requirements.txt ]; then
+            echo "📦 Installing from requirements.txt..."
+            uv pip install -r requirements.txt
+          else
+            echo "⚠️ No dependency file found (pyproject.toml or requirements.txt)"
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: |
+          # Add uv to PATH for current session
+          export PATH="$HOME/.local/bin:$PATH"
+
+          # Run tests if pytest is available
+          if command -v pytest >/dev/null; then
+            echo "🧪 Running pytest test suite..."
+            uv run pytest -v --tb=short
+          else
+            echo "⚠️ No pytest found - skipping tests"
+            echo "💡 Add pytest to your dependencies to enable testing"
+          fi
+
+      - name: Run code quality checks (if available)
+        run: |
+          # Add uv to PATH for current session
+          export PATH="$HOME/.local/bin:$PATH"
+
+          # Run linting and formatting checks if tools are available
+          if command -v ruff >/dev/null; then
+            echo "🔍 Running ruff linting..."
+            uv run ruff check .
+          fi
+
+          if command -v black >/dev/null; then
+            echo "🎨 Checking code formatting with black..."
+            uv run black --check .
+          fi
+
+          if command -v mypy >/dev/null; then
+            echo "🔍 Running type checking with mypy..."
+            uv run mypy .
+          fi

@@ -1,0 +1,27 @@
+frontend:
+  - "app/**"
+  - "src/**"
+  - "components/**"
+  - "**/*.tsx"
+  - "**/*.jsx"
+
+backend:
+  - "api/**"
+  - "server/**"
+  - "apps/**"
+  - "**/*.py"
+
+tests:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "tests/**"
+
+docs:
+  - "**/*.md"
+  - "docs/**"
+
+deps:
+  - "package*.json"
+  - "requirements*.txt"
+  - "pyproject.toml"
+  - "bun.lockb"

@@ -1,0 +1,21 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features'
+    labels: ['feature', 'type:feature']
+  - title: '🐛 Bug Fixes'
+    labels: ['fix', 'bug', 'type:bug']
+  - title: '🧰 Maintenance'
+    labels: ['chore', 'type:chore']
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+version-resolver:
+  major:
+    labels: ['breaking-change']
+  minor:
+    labels: ['feature', 'type:feature']
+  patch:
+    labels: ['fix', 'bug', 'type:bug', 'chore', 'type:chore']
+  default: patch
+template: |
+  ## Changes
+  $CHANGES
