@@ -226,8 +226,17 @@ def greet_for_web(name: str) -> str:
 
 
 if __name__ == "__main__":
+    import doctest
+    
+    # Run doctests to verify examples in docstrings
+    print("Running docstring examples...")
+    doctest.testmod(verbose=False)
+    print("Docstring examples completed.\n")
+    
     # Example usage with error handling
     try:
+        print("Demo usage:")
+        print("-" * 40)
         print(greet("Developer"))
         print(f"2 + 3 = {add_numbers(2, 3)}")
         
@@ -236,6 +245,14 @@ if __name__ == "__main__":
         
         # Demonstrate web-safe greeting
         print("Web-safe:", greet_for_web("<script>alert('test')</script>"))
+        
+        # Demonstrate error handling
+        print("\nError handling demo:")
+        try:
+            add_numbers(2.5, 3)
+        except TypeError as e:
+            print(f"Caught error: {e}")
+            
     except Exception as e:
         logger.error(f"Unexpected error in main: {e}")
         print(f"Error: {e}")
