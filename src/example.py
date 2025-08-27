@@ -63,10 +63,10 @@ def add_numbers(a: int, b: int) -> int:
         >>> add_numbers(0, 0)
         0
     """
-    # Type validation - strict integer check (excludes floats)
-    if not isinstance(a, int) or isinstance(a, bool):
+    # Type validation - strict integer check (excludes floats and bools)
+    if type(a) is not int:
         raise TypeError("Both arguments must be integers")
-    if not isinstance(b, int) or isinstance(b, bool):
+    if type(b) is not int:
         raise TypeError("Both arguments must be integers")
     
     return a + b

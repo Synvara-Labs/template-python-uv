@@ -95,6 +95,14 @@ class TestAddNumbersFunction:
         with pytest.raises(TypeError, match="Both arguments must be integers"):
             add_numbers(5, None)
     
+    def test_add_with_boolean_raises_error(self):
+        """Test that booleans raise TypeError (since bool is subclass of int)."""
+        with pytest.raises(TypeError, match="Both arguments must be integers"):
+            add_numbers(True, 5)
+        
+        with pytest.raises(TypeError, match="Both arguments must be integers"):
+            add_numbers(5, False)
+    
     def test_add_commutativity(self):
         """Test that addition is commutative."""
         assert add_numbers(3, 5) == add_numbers(5, 3)
