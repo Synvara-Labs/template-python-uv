@@ -27,5 +27,3 @@ jobs:
           fail-on-severity: moderate
           # Allow only these licenses (customize as needed)
           allow-licenses: GPL-3.0, MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense
-          # Deny these licenses
-          deny-licenses: AGPL-1.0, AGPL-3.0
