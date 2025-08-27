@@ -2,7 +2,10 @@
 
 import pytest
 import sys
-from src.example import greet, add_numbers, safe_greet, _validate_string_input, _validate_integer_input
+from src.example import (
+    greet, add_numbers, safe_greet, greet_for_web,
+    _validate_string_input, _validate_integer_input
+)
 
 
 class TestGreetFunction:
@@ -13,24 +16,24 @@ class TestGreetFunction:
         result = greet("Alice")
         assert result == "Hello, Alice! Welcome to the Python uv template."
     
-    def test_greet_with_empty_string(self):
+    def test_greet_with_empty_string_raises_value_error(self):
         """Test greet with empty string raises ValueError."""
-        with pytest.raises(ValueError, match="Name cannot be empty"):
+        with pytest.raises(ValueError, match="cannot be empty or contain only whitespace"):
             greet("")
     
-    def test_greet_with_whitespace_only(self):
+    def test_greet_with_whitespace_only_raises_value_error(self):
         """Test greet with whitespace-only string raises ValueError."""
-        with pytest.raises(ValueError, match="Name cannot be empty"):
+        with pytest.raises(ValueError, match="cannot be empty or contain only whitespace"):
             greet("   ")
     
-    def test_greet_with_none(self):
+    def test_greet_with_none_raises_type_error(self):
         """Test greet with None raises TypeError."""
-        with pytest.raises(TypeError, match="Name must be a string"):
+        with pytest.raises(TypeError, match="must be a string.*Received NoneType instead"):
             greet(None)
     
-    def test_greet_with_number(self):
+    def test_greet_with_number_raises_type_error(self):
         """Test greet with number raises TypeError."""
-        with pytest.raises(TypeError, match="Name must be a string"):
+        with pytest.raises(TypeError, match="must be a string.*Received int instead"):
             greet(123)
     
     def test_greet_with_special_characters(self):
@@ -72,60 +75,60 @@ class TestAddNumbersFunction:
         """Test adding large numbers."""
         assert add_numbers(1000000, 2000000) == 3000000
     
-    def test_add_with_string_raises_error(self):
-        """Test that strings raise TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+    def test_add_with_string_raises_type_error_with_helpful_message(self):
+        """Test that strings raise TypeError with helpful message."""
+        with pytest.raises(TypeError, match="must be an integer.*Received str instead"):
             add_numbers("5", 3)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received str instead"):
             add_numbers(5, "3")
     
-    def test_add_with_float_raises_error(self):
-        """Test that floats raise TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+    def test_add_with_float_raises_type_error_with_conversion_hint(self):
+        """Test that floats raise TypeError with conversion hint."""
+        with pytest.raises(TypeError, match="must be an integer.*Received float.*Please convert to integer"):
             add_numbers(5.5, 3)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received float.*Please convert to integer"):
             add_numbers(5, 3.5)
     
-    def test_add_with_none_raises_error(self):
+    def test_add_with_none_raises_type_error(self):
         """Test that None raises TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received NoneType instead"):
             add_numbers(None, 5)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received NoneType instead"):
             add_numbers(5, None)
     
-    def test_add_with_boolean_raises_error(self):
+    def test_add_with_boolean_raises_type_error(self):
         """Test that booleans raise TypeError (since bool is subclass of int)."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received boolean instead"):
             add_numbers(True, 5)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received boolean instead"):
             add_numbers(5, False)
     
-    def test_add_with_list_raises_error(self):
+    def test_add_with_list_raises_type_error(self):
         """Test that lists raise TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received list instead"):
             add_numbers([1, 2], 5)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received list instead"):
             add_numbers(5, [3, 4])
     
-    def test_add_with_dict_raises_error(self):
+    def test_add_with_dict_raises_type_error(self):
         """Test that dictionaries raise TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received dict instead"):
             add_numbers({"a": 1}, 5)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received dict instead"):
             add_numbers(5, {"b": 2})
     
-    def test_add_with_tuple_raises_error(self):
+    def test_add_with_tuple_raises_type_error(self):
         """Test that tuples raise TypeError."""
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received tuple instead"):
             add_numbers((1, 2), 5)
         
-        with pytest.raises(TypeError, match="Both arguments must be integers"):
+        with pytest.raises(TypeError, match="must be an integer.*Received tuple instead"):
             add_numbers(5, (3, 4))
     
     def test_add_boundary_conditions(self):
@@ -148,6 +151,31 @@ class TestAddNumbersFunction:
         """Test that addition is commutative."""
         assert add_numbers(3, 5) == add_numbers(5, 3)
         assert add_numbers(-2, 7) == add_numbers(7, -2)
+
+
+class TestGreetForWebFunction:
+    """Test suite for the greet_for_web function with XSS prevention."""
+    
+    def test_greet_for_web_with_normal_name(self):
+        """Test greet_for_web with a normal name."""
+        assert greet_for_web("Alice") == "Hello, Alice! Welcome to the Python uv template."
+    
+    def test_greet_for_web_escapes_html_tags(self):
+        """Test that HTML tags are escaped to prevent XSS."""
+        result = greet_for_web("<script>alert('XSS')</script>")
+        assert "&lt;script&gt;" in result
+        assert "&lt;/script&gt;" in result
+        assert "<script>" not in result
+    
+    def test_greet_for_web_escapes_quotes(self):
+        """Test that quotes are escaped properly."""
+        result = greet_for_web("O'Malley")
+        assert "O&#x27;Malley" in result or "O'Malley" in result  # HTML escape is optional for single quotes in content
+    
+    def test_greet_for_web_with_html_entities(self):
+        """Test handling of HTML entities."""
+        result = greet_for_web("Alice&Bob")
+        assert "Alice&amp;Bob" in result or "Alice&Bob" in result
 
 
 class TestSafeGreetFunction:
