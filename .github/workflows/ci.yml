@@ -38,7 +38,14 @@ jobs:
       - name: Install project dependencies
         run: |
           echo "📦 Installing project dependencies..."
-          uv sync --locked --all-extras --dev
+          # Use --frozen in CI if lockfile exists, otherwise create it
+          if [ -f uv.lock ]; then
+            echo "Using existing lockfile..."
+            uv sync --frozen --all-extras --dev
+          else
+            echo "Creating lockfile..."
+            uv sync --all-extras --dev
+          fi
 
       - name: Run test suite
         run: |
