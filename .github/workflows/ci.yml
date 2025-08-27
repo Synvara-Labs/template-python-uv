@@ -23,7 +23,7 @@ jobs:
       - name: Checkout repository code
         # Pin to specific commit SHA for security
         # actions/checkout@v4.1.7 (August 2024)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Install uv
         # Use official astral-sh/setup-uv action
