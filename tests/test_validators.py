@@ -124,16 +124,16 @@ class TestEmailValidation:
         - Collection types (list, dict)
         - Ensures helpful error messages are provided
         """
-        with pytest.raises(TypeError, match="Email must be a string type"):
+        with pytest.raises(TypeError, match="Email validation requires a string input"):
             validate_email_format(None)
 
-        with pytest.raises(TypeError, match="Email must be a string type"):
+        with pytest.raises(TypeError, match="Email validation requires a string input"):
             validate_email_format(123)
 
-        with pytest.raises(TypeError, match="Email must be a string type"):
+        with pytest.raises(TypeError, match="Email validation requires a string input"):
             validate_email_format([])
 
-        with pytest.raises(TypeError, match="Email must be a string type"):
+        with pytest.raises(TypeError, match="Email validation requires a string input"):
             validate_email_format({})
 
     def test_email_with_whitespace(self):
