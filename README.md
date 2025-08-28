@@ -22,13 +22,14 @@ A modern Python project template using [uv](https://github.com/astral-sh/uv) for
 - **Code Quality**: Pre-configured for ruff, black, and mypy
 - **PR Automation**: Auto-labeling and release drafting
 
-### 📦 Example Module
-Includes a production-ready example module demonstrating:
+### 📦 Example Modules
+Includes production-ready example modules demonstrating:
 - Type hints and validation
-- Google-style docstrings
+- Google-style docstrings  
 - Error handling with helpful messages
 - Security best practices
 - CLI interface
+- Email validation utilities with RFC 5322 compliance
 
 ## 🚀 Quick Start
 
