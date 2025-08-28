@@ -108,9 +108,11 @@ uv run mypy .
 │   ├── __init__.py
 │   ├── example.py       # Example module with best practices
 │   ├── cli.py           # CLI interface
+│   ├── validators.py    # Email validation utilities
 │   └── README.md        # Module documentation
 ├── tests/
-│   └── test_example_module.py  # Comprehensive test suite
+│   ├── test_example_module.py  # Comprehensive test suite
+│   └── test_validators.py      # Email validator tests
 ├── pyproject.toml       # Project configuration
 └── uv.lock             # Locked dependencies
 ```
