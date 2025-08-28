@@ -8,10 +8,42 @@ Security Note:
 
 import html
 import logging
-from typing import Any
+from contextlib import contextmanager
+from functools import lru_cache
+from typing import Any, Iterator
 
 # Configure logging for error handling
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def error_context(operation: str) -> Iterator[None]:
+    """Context manager for consistent error handling and logging.
+    
+    Provides detailed error context for debugging while keeping user-facing
+    messages clean and secure.
+    
+    Args:
+        operation: Description of the operation being performed.
+        
+    Yields:
+        None
+        
+    Raises:
+        Re-raises any exception after logging it with context.
+        
+    Examples:
+        >>> with error_context("validating user input"):
+        ...     # Some operation that might fail
+        ...     pass
+    """
+    try:
+        logger.debug(f"Starting: {operation}")
+        yield
+        logger.debug(f"Completed: {operation}")
+    except Exception as e:
+        logger.error(f"Failed during {operation}: {type(e).__name__}: {e}")
+        raise
 
 
 def _validate_string_input(value: Any, param_name: str) -> str:
@@ -85,6 +117,22 @@ def _validate_integer_input(value: Any, param_name: str) -> int:
     return value
 
 
+@lru_cache(maxsize=128)
+def _cached_greeting_format(name: str) -> str:
+    """Cached formatting for frequently used greetings.
+    
+    Performance optimization that caches formatted greetings for
+    repeated names, useful in high-throughput scenarios.
+    
+    Args:
+        name: The validated and sanitized name.
+        
+    Returns:
+        Formatted greeting string.
+    """
+    return f"Hello, {name}! Welcome to the Python uv template."
+
+
 def greet(name: str) -> str:
     """Return a personalized greeting message.
     
@@ -117,12 +165,9 @@ def greet(name: str) -> str:
         >>> html.escape(greet("Alice"))
         'Hello, Alice! Welcome to the Python uv template.'
     """
-    try:
+    with error_context(f"greeting '{name}'"):
         sanitized_name = _validate_string_input(name, "Name")
-        return f"Hello, {sanitized_name}! Welcome to the Python uv template."
-    except (TypeError, ValueError) as e:
-        # Re-raise with original exception for proper error propagation
-        raise
+        return _cached_greeting_format(sanitized_name)
 
 
 def add_numbers(a: int, b: int) -> int:
@@ -159,13 +204,10 @@ def add_numbers(a: int, b: int) -> int:
     Note:
         Python 3 has unlimited integer precision, so overflow is not a concern.
     """
-    try:
+    with error_context(f"adding {a} + {b}"):
         validated_a = _validate_integer_input(a, "First argument")
         validated_b = _validate_integer_input(b, "Second argument")
         return validated_a + validated_b
-    except TypeError as e:
-        # Re-raise with the detailed error message from validation
-        raise
 
 
 def safe_greet(name: str, default: str = "Guest") -> str:

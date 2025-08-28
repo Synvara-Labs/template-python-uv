@@ -4,7 +4,8 @@ import pytest
 import sys
 from src.example import (
     greet, add_numbers, safe_greet, greet_for_web,
-    _validate_string_input, _validate_integer_input
+    _validate_string_input, _validate_integer_input,
+    _cached_greeting_format, error_context
 )
 
 
@@ -156,6 +157,43 @@ class TestSafeGreetFunction:
     def test_safe_greet_with_custom_default(self):
         """Test safe_greet with custom default value."""
         assert safe_greet("", "Friend") == "Hello, Friend! Welcome to the Python uv template."
+
+
+class TestPerformanceFeatures:
+    """Test suite for performance optimization features."""
+    
+    def test_cached_greeting_format_caches_results(self):
+        """Test that greeting format is cached for performance."""
+        # Clear cache first
+        _cached_greeting_format.cache_clear()
+        
+        # First call - will be cached
+        result1 = _cached_greeting_format("Alice")
+        assert result1 == "Hello, Alice! Welcome to the Python uv template."
+        
+        # Check cache statistics
+        info = _cached_greeting_format.cache_info()
+        assert info.hits == 0
+        assert info.misses == 1
+        
+        # Second call - should hit cache
+        result2 = _cached_greeting_format("Alice")
+        assert result1 == result2
+        
+        info = _cached_greeting_format.cache_info()
+        assert info.hits == 1
+        assert info.misses == 1
+    
+    def test_error_context_manager_works(self):
+        """Test that error context manager properly handles exceptions."""
+        with error_context("test operation"):
+            # Should complete successfully
+            pass
+        
+        # Should re-raise exception
+        with pytest.raises(ValueError):
+            with error_context("failing operation"):
+                raise ValueError("Test error")
 
 
 class TestHelperFunctions:
