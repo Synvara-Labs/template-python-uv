@@ -11,6 +11,7 @@ from src.string_utils import (
     word_count,
     is_mixed_case,
     remove_extra_whitespace,
+    _tokenize_string,  # Import for testing
 )
 
 
@@ -33,6 +34,7 @@ class TestCaseConversions:
             ("123Numbers", "123_numbers"),
             ("with spaces here", "with_spaces_here"),
             ("__multiple__underscores__", "multiple_underscores"),
+            ("HelloWorld", "hello_world"),  # Now handles camelCase input
             ("CamelCASEMixed", "camel_case_mixed"),
         ],
     )
@@ -46,7 +48,7 @@ class TestCaseConversions:
             ("hello_world", "helloWorld"),
             ("some-variable-name", "someVariableName"),
             ("Convert to camel", "convertToCamel"),
-            ("already_camelCase", "alreadyCamelcase"),
+            ("already_camelCase", "alreadyCamelCase"),  # Preserves existing case transitions
             ("mixed-Style_Example", "mixedStyleExample"),
             ("", ""),
             ("a", "a"),
@@ -55,6 +57,8 @@ class TestCaseConversions:
             ("123_numbers", "123Numbers"),
             ("__multiple__delimiters__", "multipleDelimiters"),
             ("!!!only!!!special!!!", "onlySpecial"),
+            ("HelloWorld", "helloWorld"),  # Now properly handles CamelCase
+            ("XMLHttpRequest", "xmlHttpRequest"),  # Consistent tokenization
         ],
     )
     def test_to_camel_case(self, input_text, expected):
@@ -67,7 +71,7 @@ class TestCaseConversions:
             ("hello_world", "HelloWorld"),
             ("some-variable-name", "SomeVariableName"),
             ("convert to pascal", "ConvertToPascal"),
-            ("already_PascalCase", "AlreadyPascalcase"),
+            ("already_PascalCase", "AlreadyPascalCase"),  # Preserves case transitions
             ("mixed-Style_Example", "MixedStyleExample"),
             ("", ""),
             ("a", "A"),
@@ -75,6 +79,8 @@ class TestCaseConversions:
             ("UPPERCASE", "Uppercase"),
             ("123_numbers", "123Numbers"),
             ("__multiple__delimiters__", "MultipleDelimiters"),
+            ("helloWorld", "HelloWorld"),  # Handles camelCase input
+            ("XMLHttpRequest", "XmlHttpRequest"),  # Consistent tokenization
         ],
     )
     def test_to_pascal_case(self, input_text, expected):
@@ -195,6 +201,29 @@ class TestAdditionalUtilities:
         assert remove_extra_whitespace(text) == expected
 
 
+class TestTokenizer:
+    """Test suite for the shared tokenizer."""
+    
+    def test_tokenizer_basic(self):
+        """Test basic tokenization."""
+        assert _tokenize_string("HelloWorld") == ["Hello", "World"]
+        assert _tokenize_string("snake_case") == ["snake", "case"]
+        assert _tokenize_string("kebab-case") == ["kebab", "case"]
+        assert _tokenize_string("XMLHttpRequest") == ["XML", "Http", "Request"]
+        assert _tokenize_string("IOError") == ["IO", "Error"]
+        assert _tokenize_string("") == []
+    
+    def test_tokenizer_consistency(self):
+        """Test that all conversion functions use consistent tokenization."""
+        test_string = "XMLHttpRequest"
+        
+        # All should tokenize the same way
+        assert to_snake_case(test_string) == "xml_http_request"
+        assert to_camel_case(test_string) == "xmlHttpRequest"
+        assert to_pascal_case(test_string) == "XmlHttpRequest"
+        assert to_kebab_case(test_string) == "xml-http-request"
+
+
 class TestEdgeCases:
     """Test suite for edge cases and special scenarios."""
 
@@ -252,6 +281,10 @@ class TestEdgeCases:
         # Very long suffix
         assert truncate_text("Short", 10, "VERYLONGSUFFIX") == "Short"
         assert truncate_text("This needs truncation", 10, "LONG") == "This nLONG"
+        
+        # Negative max_length should raise ValueError
+        with pytest.raises(ValueError, match="max_length must be non-negative"):
+            truncate_text("Test", -1)
 
     def test_unicode_handling(self):
         """Test handling of Unicode characters."""

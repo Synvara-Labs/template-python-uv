@@ -5,6 +5,7 @@ commonly used in programming and documentation.
 """
 
 import re
+from typing import List
 
 
 # Precompile regex patterns for better performance
@@ -12,6 +13,44 @@ _CONSECUTIVE_CAPS = re.compile(r'([A-Z]+)([A-Z][a-z])')
 _CAMEL_BOUNDARY = re.compile(r'([a-z0-9])([A-Z])')
 _NON_ALNUM = re.compile(r'[^a-zA-Z0-9]+')
 _WHITESPACE = re.compile(r'\s+')
+
+
+def _tokenize_string(text: str) -> List[str]:
+    """
+    Tokenize a string into words based on case transitions, delimiters, and numbers.
+    
+    This shared tokenizer ensures consistent behavior across all case conversion functions.
+    
+    Args:
+        text: Input string to tokenize
+        
+    Returns:
+        List of word tokens
+        
+    Examples:
+        >>> _tokenize_string("HelloWorld")
+        ['Hello', 'World']
+        >>> _tokenize_string("XMLHttpRequest")
+        ['XML', 'Http', 'Request']
+        >>> _tokenize_string("snake_case_example")
+        ['snake', 'case', 'example']
+    """
+    if not text:
+        return []
+    
+    # First, replace non-alphanumeric with spaces
+    text = _NON_ALNUM.sub(' ', text)
+    
+    # Handle consecutive capitals (e.g., XMLHttp -> XML Http)
+    text = _CONSECUTIVE_CAPS.sub(r'\1 \2', text)
+    
+    # Insert space before capitals preceded by lowercase/digit
+    text = _CAMEL_BOUNDARY.sub(r'\1 \2', text)
+    
+    # Split on whitespace and filter empty strings
+    tokens = text.split()
+    
+    return [token for token in tokens if token]
 
 
 def to_snake_case(text: str) -> str:
@@ -37,24 +76,11 @@ def to_snake_case(text: str) -> str:
         >>> to_snake_case("__already__snake__")
         'already_snake'
     """
-    if not text:
+    tokens = _tokenize_string(text)
+    if not tokens:
         return ""
     
-    # Replace non-alphanumeric with underscores
-    text = _NON_ALNUM.sub('_', text)
-    
-    # Handle consecutive capitals
-    text = _CONSECUTIVE_CAPS.sub(r'\1_\2', text)
-    
-    # Insert underscore before capitals preceded by lowercase/digit
-    text = _CAMEL_BOUNDARY.sub(r'\1_\2', text)
-    
-    # Convert to lowercase and remove redundant underscores
-    text = text.lower()
-    text = re.sub(r'_+', '_', text)  # Collapse multiple underscores
-    text = text.strip('_')  # Remove leading/trailing underscores
-    
-    return text
+    return '_'.join(token.lower() for token in tokens)
 
 
 def to_camel_case(text: str) -> str:
@@ -73,24 +99,19 @@ def to_camel_case(text: str) -> str:
         'someVariableName'
         >>> to_camel_case("Convert to camel")
         'convertToCamel'
+        >>> to_camel_case("HelloWorld")
+        'helloWorld'
+        >>> to_camel_case("XMLHttpRequest")
+        'xmlHttpRequest'
         >>> to_camel_case("__multiple__delimiters__")
         'multipleDelimiters'
-        >>> to_camel_case("123_start_with_number")
-        '123StartWithNumber'
     """
-    if not text:
+    tokens = _tokenize_string(text)
+    if not tokens:
         return ""
     
-    # Split on non-alphanumeric characters
-    words = _NON_ALNUM.split(text)
-    # Filter empty strings
-    words = [w for w in words if w]
-    
-    if not words:
-        return ""
-    
-    # First word lowercase, rest title case
-    return words[0].lower() + ''.join(w.capitalize() for w in words[1:])
+    # First token lowercase, rest capitalized
+    return tokens[0].lower() + ''.join(token.capitalize() for token in tokens[1:])
 
 
 def to_pascal_case(text: str) -> str:
@@ -109,18 +130,18 @@ def to_pascal_case(text: str) -> str:
         'SomeVariableName'
         >>> to_pascal_case("convert to pascal")
         'ConvertToPascal'
+        >>> to_pascal_case("helloWorld")
+        'HelloWorld'
+        >>> to_pascal_case("XMLHttpRequest")
+        'XmlHttpRequest'
         >>> to_pascal_case("__multiple__delimiters__")
         'MultipleDelimiters'
-        >>> to_pascal_case("123_start_with_number")
-        '123StartWithNumber'
     """
-    if not text:
+    tokens = _tokenize_string(text)
+    if not tokens:
         return ""
     
-    # Split on non-alphanumeric characters
-    words = _NON_ALNUM.split(text)
-    # Filter empty strings and capitalize each word
-    return ''.join(w.capitalize() for w in words if w)
+    return ''.join(token.capitalize() for token in tokens)
 
 
 def to_kebab_case(text: str) -> str:
@@ -144,24 +165,11 @@ def to_kebab_case(text: str) -> str:
         >>> to_kebab_case("--already--kebab--")
         'already-kebab'
     """
-    if not text:
+    tokens = _tokenize_string(text)
+    if not tokens:
         return ""
     
-    # Replace non-alphanumeric with hyphens
-    text = _NON_ALNUM.sub('-', text)
-    
-    # Handle consecutive capitals
-    text = _CONSECUTIVE_CAPS.sub(r'\1-\2', text)
-    
-    # Insert hyphen before capitals preceded by lowercase/digit
-    text = _CAMEL_BOUNDARY.sub(r'\1-\2', text)
-    
-    # Convert to lowercase and clean up hyphens
-    text = text.lower()
-    text = re.sub(r'-+', '-', text)  # Collapse multiple hyphens
-    text = text.strip('-')  # Remove leading/trailing hyphens
-    
-    return text
+    return '-'.join(token.lower() for token in tokens)
 
 
 def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
@@ -172,12 +180,15 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     
     Args:
         text: Text to truncate
-        max_length: Maximum length including suffix
+        max_length: Maximum length including suffix (must be non-negative)
         suffix: String to append when truncating (default: "...")
         
     Returns:
         Truncated text with suffix if needed, empty string if max_length
         is too small for meaningful truncation
+        
+    Raises:
+        ValueError: If max_length is negative
         
     Examples:
         >>> truncate_text("This is a long text", 10)
@@ -186,11 +197,14 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
         'Short'
         >>> truncate_text("Exactly ten", 11)
         'Exactly ten'
-        >>> truncate_text("Too long", 2, "...")
-        ''
-        >>> truncate_text("Custom", 5, "→")
-        'Cust→'
+        >>> truncate_text("Too long", -1)
+        Traceback (most recent call last):
+            ...
+        ValueError: max_length must be non-negative, got -1
     """
+    if max_length < 0:
+        raise ValueError(f"max_length must be non-negative, got {max_length}")
+    
     if len(text) <= max_length:
         return text
     
